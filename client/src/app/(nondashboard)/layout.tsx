@@ -17,11 +17,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       const userRole = authUser.userRole?.toLowerCase();
       if (
         (userRole === "manager" && pathname.startsWith("/search")) ||
-        (userRole === "manager" && pathname === "/")
+        (userRole === "manager" && pathname === "/") || (userRole === "manager" && pathname.startsWith("/explore"))||(userRole === "manager" && pathname.startsWith("/discover"))
       ) {
+        
         router.push("/managers/properties", { scroll: false });
-      } else {
+      } else if((userRole === "tenant" && pathname.startsWith("/discover"))||(userRole === "tenant" && pathname.startsWith("/explore"))  ){
+        router.push("/tenants/favorites", { scroll: false });
+      }else
+      {
         setIsLoading(false);
+
       }
     }
   }, [authUser, router, pathname]);

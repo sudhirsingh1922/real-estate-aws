@@ -20,6 +20,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React from "react";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import TenantsPDF from '@/components/pdf/TenantsPDF';
 
 const PropertyTenants = () => {
   const { id } = useParams();
@@ -74,13 +76,36 @@ const PropertyTenants = () => {
               </p>
             </div>
             <div>
-              <button
+              {/* <button
                 className={`bg-white border border-gray-300 text-gray-700 py-2
               px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50`}
               >
                 <Download className="w-5 h-5 mr-2" />
                 <span>Download All</span>
-              </button>
+              </button> */}
+
+                <PDFDownloadLink
+                  document={
+                    <TenantsPDF
+                      propertyName={property?.name}
+                      leases={leases}
+                      getCurrentMonthPaymentStatus={
+                        getCurrentMonthPaymentStatus
+                      }
+                    />
+                  }
+                  fileName={`tenants-${property?.name || "report"}.pdf`}
+                >
+                  {({ loading }) => (
+                    <button
+                      className={`bg-white border border-gray-300 text-gray-700 py-2
+      px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50`}
+                    >
+                      <Download className="w-5 h-5 mr-2" />
+                      {loading ? "Preparing PDF..." : "Download All"}
+                    </button>
+                  )}
+                </PDFDownloadLink>
             </div>
           </div>
           <hr className="mt-4 mb-1" />
@@ -140,7 +165,7 @@ const PropertyTenants = () => {
                       </span>
                     </TableCell>
                     <TableCell>{lease.tenant.phoneNumber}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <button
                         className={`border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex 
                       items-center justify-center font-semibold hover:bg-primary-700 hover:text-primary-50`}
@@ -148,7 +173,7 @@ const PropertyTenants = () => {
                         <ArrowDownToLine className="w-4 h-4 mr-1" />
                         Download Agreement
                       </button>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

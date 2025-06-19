@@ -148,7 +148,7 @@ const FiltersBar = () => {
               <SelectItem value="any">Any Min Price</SelectItem>
               {[500, 1000, 1500, 2000, 3000, 5000, 10000].map((price) => (
                 <SelectItem key={price} value={price.toString()}>
-                  ${price / 1000}k+
+                  Rs {price / 1000}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -170,7 +170,7 @@ const FiltersBar = () => {
               <SelectItem value="any">Any Max Price</SelectItem>
               {[1000, 2000, 3000, 5000, 10000].map((price) => (
                 <SelectItem key={price} value={price.toString()}>
-                  &lt;${price / 1000}k
+                  &lt;Rs{price / 1000}
                 </SelectItem>
               ))}
             </SelectContent>

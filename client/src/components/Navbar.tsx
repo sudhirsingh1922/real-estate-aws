@@ -32,6 +32,9 @@ const Navbar = () => {
     window.location.href = "/";
   };
 
+  console.log(authUser);
+  
+
   return (
     <div
       className="fixed top-0 left-0 w-full z-50 shadow-xl"
@@ -101,25 +104,29 @@ const Navbar = () => {
         <div className="flex items-center gap-5">
           {authUser ? (
             <>
-              <div className="relative hidden md:block">
-                <MessageCircle className="w-6 h-6 cursor-pointer text-primary-200 hover:text-primary-400" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-secondary-700 rounded-full"></span>
+              <div className="flex items-center justify-center cursor-pointer" onClick={()=>router.push("/about")}>
+                <Image
+                        src="/aboutus.png"
+                        width={40}
+                        height={40}
+                        className="object-contain  "
+                        alt={"about us"}
+                        title="About Us"
+                      />
+                  
               </div>
-              <div className="relative hidden md:block">
-                <Bell className="w-6 h-6 cursor-pointer text-primary-200 hover:text-primary-400" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-secondary-700 rounded-full"></span>
-              </div>
+           
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-2 focus:outline-none">
                   <Avatar>
                     <AvatarImage src={authUser.userInfo?.image} />
-                    <AvatarFallback className="bg-primary-600">
-                      {authUser.userRole?.[0].toUpperCase()}
+                    <AvatarFallback className="bg-primary-600 text-lg">
+                      {authUser.cognitoInfo?.username[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <p className="text-primary-200 hidden md:block">
-                    {authUser.userInfo?.name}
+                  <p className="text-primary-200 text-lg  hidden md:block">
+                    {authUser.userInfo?.name || authUser.cognitoInfo?.username.toUpperCase() }
                   </p>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-white text-primary-700">
@@ -159,6 +166,18 @@ const Navbar = () => {
             </>
           ) : (
             <>
+             <div className="flex flex-col items-center justify-center cursor-pointer" onClick={()=>router.push("/about")}>
+                <Image
+                        src="/aboutus.png"
+                        width={40}
+                        height={40}
+                        className="object-contain  "
+                        alt={"about us"}
+                        title="About Us"
+                      />
+                     
+                      
+              </div>
               <Link href="/signin">
                 <Button
                   variant="outline"

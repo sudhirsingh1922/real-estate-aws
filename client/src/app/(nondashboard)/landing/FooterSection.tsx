@@ -25,16 +25,16 @@ const FooterSection = () => {
                 <Link href="/about">About Us</Link>
               </li>
               <li>
-                <Link href="/contact">Contact Us</Link>
+                <Link href="#">Contact Us</Link>
               </li>
               <li>
-                <Link href="/faq">FAQ</Link>
+                <Link href="#">FAQ</Link>
               </li>
               <li>
-                <Link href="/terms">Terms</Link>
+                <Link href="#">Terms</Link>
               </li>
               <li>
-                <Link href="/privacy">Privacy</Link>
+                <Link href="#">Privacy</Link>
               </li>
             </ul>
           </nav>

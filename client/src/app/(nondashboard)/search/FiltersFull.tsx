@@ -160,8 +160,8 @@ const FiltersFull = () => {
             }
           />
           <div className="flex justify-between mt-2">
-            <span>${localFilters.priceRange[0] ?? 0}</span>
-            <span>${localFilters.priceRange[1] ?? 10000}</span>
+            <span>Rs {localFilters.priceRange[0] ?? 0}</span>
+            <span>Rs {localFilters.priceRange[1] ?? 10000}</span>
           </div>
         </div>
 

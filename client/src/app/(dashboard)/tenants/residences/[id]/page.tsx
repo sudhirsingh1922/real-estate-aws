@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import React from "react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import ResidenceLeasePDF from "@/components/pdf/ResidentLease";
+import InvoicePDF from "@/components/pdf/InvoicePDF";
 
 const PaymentMethod = () => {
   return (
@@ -103,7 +106,7 @@ const ResidenceCard = ({
             </div>
           </div>
           <div className="text-xl font-bold">
-            ${currentLease.rent}{" "}
+            Rs{currentLease.rent}{" "}
             <span className="text-gray-500 text-sm font-normal">/ night</span>
           </div>
         </div>
@@ -141,10 +144,26 @@ const ResidenceCard = ({
           <User className="w-5 h-5 mr-2" />
           Manager
         </button>
-        <button className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50">
+        {/* <button className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50">
           <Download className="w-5 h-5 mr-2" />
           Download Agreement
-        </button>
+        </button> */}
+        <PDFDownloadLink
+          document={
+            <ResidenceLeasePDF
+              property={property}
+              currentLease={currentLease}
+            />
+          }
+          fileName={`Lease_${property.name.replaceAll(" ", "_")}.pdf`}
+        >
+          {({ loading }) => (
+            <button className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50">
+              <Download className="w-5 h-5 mr-2" />
+              {loading ? "Preparing..." : "Download Agreement"}
+            </button>
+          )}
+        </PDFDownloadLink>
       </div>
     </div>
   );
@@ -161,12 +180,12 @@ const BillingHistory = ({ payments }: { payments: Payment[] }) => {
             Download your previous plan receipts and usage details.
           </p>
         </div>
-        <div>
+        {/* <div>
           <button className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50">
             <Download className="w-5 h-5 mr-2" />
             <span>Download All</span>
           </button>
-        </div>
+        </div> */}
       </div>
       <hr className="mt-4 mb-1" />
       <div className="overflow-x-auto">
@@ -212,10 +231,21 @@ const BillingHistory = ({ payments }: { payments: Payment[] }) => {
                 </TableCell>
                 <TableCell>${payment.amountPaid.toFixed(2)}</TableCell>
                 <TableCell>
-                  <button className="border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center font-semibold hover:bg-primary-700 hover:text-primary-50">
+                  {/* <button className="border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center font-semibold hover:bg-primary-700 hover:text-primary-50">
                     <ArrowDownToLineIcon className="w-4 h-4 mr-1" />
                     Download
-                  </button>
+                  </button> */}
+                  <PDFDownloadLink
+                    document={<InvoicePDF payment={payment} />}
+                    fileName={`Invoice_${payment.id}.pdf`}
+                  >
+                    {({ loading }) => (
+                      <button className="border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center font-semibold hover:bg-primary-700 hover:text-primary-50">
+                        <ArrowDownToLineIcon className="w-4 h-4 mr-1" />
+                        {loading ? "Generating..." : "Download"}
+                      </button>
+                    )}
+                  </PDFDownloadLink>
                 </TableCell>
               </TableRow>
             ))}
