@@ -48,7 +48,7 @@ const PropertyOverview = ({ propertyId }: PropertyOverviewProps) => {
           <div>
             <div className="text-sm text-gray-500">Monthly Rent</div>
             <div className="font-semibold">
-              ${property.pricePerMonth.toLocaleString()}
+              Rs {property.pricePerMonth.toLocaleString()}
             </div>
           </div>
           <div className="border-l border-gray-300 h-10"></div>
@@ -76,6 +76,7 @@ const PropertyOverview = ({ propertyId }: PropertyOverviewProps) => {
         <h2 className="text-xl font-semibold mb-5">About {property.name}</h2>
         <p className="text-gray-500 leading-7">
           {property.description} {" "}
+          <br />
           At our estate, we are committed to providing a high-quality rent lease experience tailored to meet the needs of every tenant 🏡. Our properties are carefully maintained, offering clean, modern, and secure living environments that ensure both comfort and peace of mind 🌿🔒. We believe in creating a space where residents feel truly at home, whether they're staying short-term or long-term.
 
 From the very first point of contact, our team strives to deliver a seamless and transparent leasing process 📄✨. We’re here to guide you every step of the way — from property viewings and documentation to move-in day and beyond. Our professional support team is available to address any inquiries or maintenance requests promptly, ensuring minimal hassle and maximum satisfaction 🛠️📞.
