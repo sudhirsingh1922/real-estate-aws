@@ -9,9 +9,6 @@ import { log } from "console";
 
 const prisma = new PrismaClient();
 
-// const s3Client = new S3Client({
-//   region: process.env.AWS_REGION,
-// });
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION!, // e.g., 'us-east-1'

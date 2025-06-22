@@ -43,7 +43,7 @@ const InvoicePDF = ({ payment }) => (
           {new Date(payment.paymentDate).toLocaleDateString()}
         </Text>
         <Text style={styles.row}>
-          <Text style={styles.label}>Amount Paid:</Text> $
+          <Text style={styles.label}>Amount Paid:</Text> Rs 
           {payment.amountPaid.toFixed(2)}
         </Text>
       </View>

@@ -26,52 +26,160 @@ import {
   Mail,
   MapPin,
   User,
+  CalendarDays,
+  IndianRupee,
+  Clock,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import React from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResidenceLeasePDF from "@/components/pdf/ResidentLease";
 import InvoicePDF from "@/components/pdf/InvoicePDF";
+import loadRazorpayScript from "@/lib/loadRazorpay";
+import { fetchAuthSession } from "aws-amplify/auth";
 
-const PaymentMethod = () => {
+const PaymentMethod = ({
+  payments,
+  leaseId,
+  tenant
+}: {
+  payments: Payment[];
+  leaseId: number;
+  tenant:User
+}) => {
+  const today = new Date();
+
+  const nextPayment = payments.find(
+    (payment) =>
+      payment.leaseId === leaseId &&
+      (payment.paymentStatus === "Pending" ||
+        payment.paymentStatus === "PartiallyPaid") &&
+      (new Date(payment.dueDate) >= today || new Date(payment.dueDate) < today)
+  );
+
+  if (!nextPayment) return null;
+
+  const handlePayment = async () => {
+
+    console.log("clicked");
+    
+    const isLoaded = await loadRazorpayScript();
+    if (!isLoaded) {
+      alert("Failed to load Razorpay SDK. Please try again later.");
+      return;
+    }
+
+    const session = await fetchAuthSession();
+    const { idToken } = session.tokens ?? {};
+    const token = idToken
+
+
+    const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/leases/${leaseId}/payments`, {
+      method: "POST",
+      body: JSON.stringify({
+        amount: nextPayment.amountDue * 100,
+        currency: "INR",
+        receipt: `receipt_${nextPayment.id}`,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+    }).then((t) => t.json());
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // from .env
+      amount: data.amount,
+      currency: data.currency,
+      name: "RentiFul",
+      description: "Rent Payment ",
+      image: "/logo.svg", // optional
+      order_id: data.orderId,
+      handler: async function (response: any) {
+
+        console.log("response: ",response);
+        
+
+        // Confirm payment with backend
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/leases/${leaseId}/payments/verify`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` })
+          },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            paymentId: nextPayment.id,
+            leaseId:leaseId
+          }),
+        });
+        alert("Payment Successful!");
+        window.location.reload(); // or update state
+      },
+      prefill: {
+        name: tenant?.userInfo.name,
+        email: tenant?.userInfo.email,
+        contact: tenant?.userInfo.phoneNumber,
+      },
+      theme: {
+        color: "#f59e0b",
+      },
+    };
+
+    const paymentObject = new (window as any).Razorpay(options);
+    paymentObject.open();
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden p-6 mt-10 md:mt-0 flex-1">
-      <h2 className="text-2xl font-bold mb-4">Payment method</h2>
-      <p className="mb-4">Change how you pay for your plan.</p>
+      <h2 className="text-2xl font-bold mb-4">Next Payment</h2>
+      <p className="mb-4">Your upcoming rent payment details.</p>
       <div className="border rounded-lg p-6">
-        <div>
-          {/* Card Info */}
-          <div className="flex gap-10">
-            <div className="w-36 h-20 bg-blue-600 flex items-center justify-center rounded-md">
-              <span className="text-white text-2xl font-bold">VISA</span>
-            </div>
-            <div className="flex flex-col justify-between">
-              <div>
-                <div className="flex items-start gap-5">
-                  <h3 className="text-lg font-semibold">Visa ending in 2024</h3>
-                  <span className="text-sm font-medium border border-primary-700 text-primary-700 px-3 py-1 rounded-full">
-                    Default
-                  </span>
-                </div>
-                <div className="text-sm text-gray-500 flex items-center">
-                  <CreditCard className="w-4 h-4 mr-1" />
-                  <span>Expiry • 26/06/2024</span>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500 flex items-center">
-                <Mail className="w-4 h-4 mr-1" />
-                <span>billing@baseclub.com</span>
-              </div>
-            </div>
+        <div className="flex gap-10">
+          {/* Icon Block */}
+          <div className="w-36 h-20 bg-yellow-500 flex items-center justify-center rounded-md">
+            <IndianRupee className="text-white w-10 h-10" />
           </div>
 
-          <hr className="my-4" />
-          <div className="flex justify-end">
-            <button className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50">
-              <Edit className="w-5 h-5 mr-2" />
-              <span>Edit</span>
-            </button>
+          {/* Payment Info */}
+          <div className="flex flex-col justify-between">
+            <div>
+              <div className="flex items-start gap-5">
+                <h3 className="text-lg font-semibold">
+                  Rs {nextPayment.amountDue.toFixed(2)} Due
+                </h3>
+                <span className="text-sm font-medium border border-yellow-700 text-yellow-700 px-3 py-1 rounded-full">
+                  {nextPayment.paymentStatus}
+                </span>
+              </div>
+              <div className="text-sm text-gray-500 flex items-center mt-2">
+                <CalendarDays className="w-4 h-4 mr-1" />
+                Due Date:{" "}
+                {new Date(nextPayment.dueDate).toLocaleDateString("en-IN")}
+              </div>
+              {nextPayment.paymentDate && (
+                <div className="text-sm text-gray-500 flex items-center mt-1">
+                  <Clock className="w-4 h-4 mr-1" />
+                  Paid On:{" "}
+                  {new Date(nextPayment.paymentDate).toLocaleDateString(
+                    "en-IN"
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        <hr className="my-4" />
+        <div className="flex justify-end">
+          <button
+            className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50"
+            onClick={handlePayment}
+          >
+            <span>Pay Now</span>
+          </button>
         </div>
       </div>
     </div>
@@ -81,10 +189,22 @@ const PaymentMethod = () => {
 const ResidenceCard = ({
   property,
   currentLease,
+  payments,
 }: {
   property: Property;
   currentLease: Lease;
+  payments: Payment[];
 }) => {
+  const today = new Date();
+
+  const nextPayment = payments.find(
+    (payment) =>
+      payment.leaseId === currentLease.id &&
+      (payment.paymentStatus === "Pending" ||
+        payment.paymentStatus === "PartiallyPaid") &&
+      (new Date(payment.dueDate) >= today || new Date(payment.dueDate) < today)
+  );
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden p-6 flex-1 flex flex-col justify-between">
       {/* Header */}
@@ -132,7 +252,7 @@ const ResidenceCard = ({
           <div className="xl:flex">
             <div className="text-gray-500 mr-2">Next Payment: </div>
             <div className="font-semibold">
-              {new Date(currentLease.endDate).toLocaleDateString()}
+              {new Date(nextPayment.dueDate).toLocaleDateString()}
             </div>
           </div>
         </div>
@@ -144,10 +264,6 @@ const ResidenceCard = ({
           <User className="w-5 h-5 mr-2" />
           Manager
         </button>
-        {/* <button className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50">
-          <Download className="w-5 h-5 mr-2" />
-          Download Agreement
-        </button> */}
         <PDFDownloadLink
           document={
             <ResidenceLeasePDF
@@ -195,7 +311,8 @@ const BillingHistory = ({ payments }: { payments: Payment[] }) => {
               <TableHead>Invoice</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Billing Date</TableHead>
-              <TableHead>Amount</TableHead>
+              <TableHead>Amount Paid</TableHead>
+              <TableHead>Amount Due</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -206,7 +323,9 @@ const BillingHistory = ({ payments }: { payments: Payment[] }) => {
                   <div className="flex items-center">
                     <FileText className="w-4 h-4 mr-2" />
                     Invoice #{payment.id} -{" "}
-                    {new Date(payment.paymentDate).toLocaleString("default", {
+                    {new Date(
+                      payment.paymentDate || payment.dueDate
+                    ).toLocaleString("default", {
                       month: "short",
                       year: "numeric",
                     })}
@@ -227,9 +346,10 @@ const BillingHistory = ({ payments }: { payments: Payment[] }) => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {new Date(payment.paymentDate).toLocaleDateString()}
+                  {new Date(payment.dueDate).toLocaleDateString()}
                 </TableCell>
-                <TableCell>${payment.amountPaid.toFixed(2)}</TableCell>
+                <TableCell>Rs {payment.amountPaid.toFixed(2)}</TableCell>
+                <TableCell>Rs {payment.amountDue.toFixed(2)}</TableCell>
                 <TableCell>
                   {/* <button className="border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center font-semibold hover:bg-primary-700 hover:text-primary-50">
                     <ArrowDownToLineIcon className="w-4 h-4 mr-1" />
@@ -270,8 +390,9 @@ const Residence = () => {
     { skip: !authUser?.cognitoInfo?.userId }
   );
   const { data: payments, isLoading: paymentsLoading } = useGetPaymentsQuery(
-    leases?.[0]?.id || 0,
-    { skip: !leases?.[0]?.id }
+    // leases?.[0]?.id || 0,
+    // { skip: !leases?.[0]?.id }
+    Number(id)
   );
 
   if (propertyLoading || leasesLoading || paymentsLoading) return <Loading />;
@@ -286,11 +407,21 @@ const Residence = () => {
       <div className="w-full mx-auto">
         <div className="md:flex gap-10">
           {currentLease && (
-            <ResidenceCard property={property} currentLease={currentLease} />
+            <ResidenceCard
+              property={property}
+              currentLease={currentLease}
+              payments={payments}
+            />
           )}
-          <PaymentMethod />
+          {currentLease && (
+            <PaymentMethod
+              payments={payments || []}
+              leaseId={currentLease.id}
+              tenant = {authUser}
+            />
+          )}
         </div>
-        <BillingHistory payments={payments || []} />
+        <BillingHistory payments={payments || []}  />
       </div>
     </div>
   );

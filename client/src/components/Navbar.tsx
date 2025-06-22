@@ -32,7 +32,6 @@ const Navbar = () => {
     window.location.href = "/";
   };
 
-  console.log(authUser);
   
 
   return (
