@@ -20,6 +20,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React from "react";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import TenantsPDF from '@/components/pdf/TenantsPDF';
+import { log } from "console";
 
 const PropertyTenants = () => {
   const { id } = useParams();
@@ -42,7 +45,7 @@ const PropertyTenants = () => {
         new Date(payment.dueDate).getMonth() === currentDate.getMonth() &&
         new Date(payment.dueDate).getFullYear() === currentDate.getFullYear()
     );
-    return currentMonthPayment?.paymentStatus || "Not Paid";
+    return [currentMonthPayment?.paymentStatus || "Not Paid",currentMonthPayment?.dueDate] ;
   };
 
 
@@ -74,13 +77,36 @@ const PropertyTenants = () => {
               </p>
             </div>
             <div>
-              <button
+              {/* <button
                 className={`bg-white border border-gray-300 text-gray-700 py-2
               px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50`}
               >
                 <Download className="w-5 h-5 mr-2" />
                 <span>Download All</span>
-              </button>
+              </button> */}
+
+                <PDFDownloadLink
+                  document={
+                    <TenantsPDF
+                      propertyName={property?.name}
+                      leases={leases}
+                      getCurrentMonthPaymentStatus={
+                        getCurrentMonthPaymentStatus
+                      }
+                    />
+                  }
+                  fileName={`tenants-${property?.name || "report"}.pdf`}
+                >
+                  {({ loading }) => (
+                    <button
+                      className={`bg-white border border-gray-300 text-gray-700 py-2
+      px-4 rounded-md flex items-center justify-center hover:bg-primary-700 hover:text-primary-50`}
+                    >
+                      <Download className="w-5 h-5 mr-2" />
+                      {loading ? "Preparing PDF..." : "Download All"}
+                    </button>
+                  )}
+                </PDFDownloadLink>
             </div>
           </div>
           <hr className="mt-4 mb-1" />
@@ -91,6 +117,7 @@ const PropertyTenants = () => {
                   <TableHead>Tenant</TableHead>
                   <TableHead>Lease Period</TableHead>
                   <TableHead>Monthly Rent</TableHead>
+                  <TableHead>Due Date</TableHead>
                   <TableHead>Current Month Status</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Action</TableHead>
@@ -124,23 +151,24 @@ const PropertyTenants = () => {
                       </div>
                       <div>{new Date(lease.endDate).toLocaleDateString()}</div>
                     </TableCell>
-                    <TableCell>${lease.rent.toFixed(2)}</TableCell>
+                    <TableCell>Rs {lease.rent.toFixed(2)}</TableCell>
+                    <TableCell>{new Date(getCurrentMonthPaymentStatus(lease.id)[1]).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          getCurrentMonthPaymentStatus(lease.id) === "Paid"
+                          getCurrentMonthPaymentStatus(lease.id)[0] === "Paid"
                             ? "bg-green-100 text-green-800 border-green-300"
                             : "bg-red-100 text-red-800 border-red-300"
                         }`}
                       >
-                        {getCurrentMonthPaymentStatus(lease.id) === "Paid" && (
+                        {getCurrentMonthPaymentStatus(lease.id)[0] === "Paid" && (
                           <Check className="w-4 h-4 inline-block mr-1" />
                         )}
-                        {getCurrentMonthPaymentStatus(lease.id)}
+                        {getCurrentMonthPaymentStatus(lease.id)[0]}
                       </span>
                     </TableCell>
                     <TableCell>{lease.tenant.phoneNumber}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <button
                         className={`border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex 
                       items-center justify-center font-semibold hover:bg-primary-700 hover:text-primary-50`}
@@ -148,7 +176,7 @@ const PropertyTenants = () => {
                         <ArrowDownToLine className="w-4 h-4 mr-1" />
                         Download Agreement
                       </button>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

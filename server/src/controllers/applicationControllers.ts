@@ -111,22 +111,23 @@ export const createApplication = async (
 
     const newApplication = await prisma.$transaction(async (prisma) => {
       // Create lease first
-      const lease = await prisma.lease.create({
-        data: {
-          startDate: new Date(), // Today
-          endDate: new Date(
-            new Date().setFullYear(new Date().getFullYear() + 1)
-          ), // 1 year from today
-          rent: property.pricePerMonth,
-          deposit: property.securityDeposit,
-          property: {
-            connect: { id: propertyId },
-          },
-          tenant: {
-            connect: { cognitoId: tenantCognitoId },
-          },
-        },
-      });
+
+      // const lease = await prisma.lease.create({
+      //   data: {
+      //     startDate: new Date(), // Today
+      //     endDate: new Date(
+      //       new Date().setFullYear(new Date().getFullYear() + 1)
+      //     ), // 1 year from today
+      //     rent: property.pricePerMonth,
+      //     deposit: property.securityDeposit,
+      //     property: {
+      //       connect: { id: propertyId },
+      //     },
+      //     tenant: {
+      //       connect: { cognitoId: tenantCognitoId },
+      //     },
+      //   },
+      // });
 
       // Then create application with lease connection
       const application = await prisma.application.create({
@@ -144,7 +145,7 @@ export const createApplication = async (
             connect: { cognitoId: tenantCognitoId },
           },
           lease: {
-            connect: { id: lease.id },
+            // connect: { id: lease.id },
           },
         },
         include: {
@@ -157,7 +158,8 @@ export const createApplication = async (
       return application;
     });
 
-    res.status(201).json(newApplication);
+    res.status(201).json("Application Created");
+    
   } catch (error: any) {
     res
       .status(500)
@@ -188,18 +190,38 @@ export const updateApplicationStatus = async (
     }
 
     if (status === "Approved") {
+      const leaseStart = new Date();
+      const leaseEnd = new Date();
+      leaseEnd.setFullYear(leaseEnd.getFullYear() + 1);
+
       const newLease = await prisma.lease.create({
         data: {
-          startDate: new Date(),
-          endDate: new Date(
-            new Date().setFullYear(new Date().getFullYear() + 1)
-          ),
+          startDate: leaseStart,
+          endDate: leaseEnd,
           rent: application.property.pricePerMonth,
           deposit: application.property.securityDeposit,
           propertyId: application.propertyId,
           tenantCognitoId: application.tenantCognitoId,
         },
       });
+
+       // 2. Create initial payment
+       const firstDueDate = new Date(leaseStart);
+       firstDueDate.setDate(15); // You can adjust this to your due date rule
+
+       await prisma.payment.create({
+        data: {
+          amountDue: application.property.pricePerMonth,
+          amountPaid: 0.0,
+          dueDate: firstDueDate,
+          paymentDate: null,
+          paymentStatus: "Pending",
+          lease: {
+            connect: { id: newLease.id },
+          },
+        },
+      });
+
 
       // Update the property to connect the tenant
       await prisma.property.update({
