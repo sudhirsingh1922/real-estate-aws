@@ -81,7 +81,7 @@ const PropertyOverview = ({ propertyId }: PropertyOverviewProps) => {
 
 From the very first point of contact, our team strives to deliver a seamless and transparent leasing process 📄✨. We’re here to guide you every step of the way — from property viewings and documentation to move-in day and beyond. Our professional support team is available to address any inquiries or maintenance requests promptly, ensuring minimal hassle and maximum satisfaction 🛠️📞.
 
-We understand that excellent service goes beyond just providing a space — it’s about building trust and maintaining strong relationships with our residents 🤝. That’s why we continuously invest in the upkeep of our properties and in delivering responsive, courteous assistance at all times. Choosing to lease with us means choosing reliability, comfort, and a place you’ll be proud to call home 🏠😊.
+We understand that excellent service goes beyond just providing a space — it&apos;s about building trust and maintaining strong relationships with our residents 🤝. That’s why we continuously invest in the upkeep of our properties and in delivering responsive, courteous assistance at all times. Choosing to lease with us means choosing reliability, comfort, and a place you’ll be proud to call home 🏠😊.
 
 
 
