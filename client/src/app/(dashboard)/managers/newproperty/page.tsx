@@ -65,7 +65,6 @@ const NewProperty = () => {
 
     await createProperty(formData);
 
-    console.log("i was here");
     
     router.push("/managers/properties")
   };

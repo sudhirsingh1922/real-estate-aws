@@ -174,7 +174,6 @@ export const updateApplicationStatus = async (
   try {
     const { id } = req.params;
     const { status } = req.body;
-    console.log("status:", status);
 
     const application = await prisma.application.findUnique({
       where: { id: Number(id) },
@@ -205,11 +204,13 @@ export const updateApplicationStatus = async (
         },
       });
 
+      console.log("newLease: ",newLease);
+      
        // 2. Create initial payment
        const firstDueDate = new Date(leaseStart);
        firstDueDate.setDate(15); // You can adjust this to your due date rule
 
-       await prisma.payment.create({
+       const payment = await prisma.payment.create({
         data: {
           amountDue: application.property.pricePerMonth,
           amountPaid: 0.0,
@@ -222,6 +223,8 @@ export const updateApplicationStatus = async (
         },
       });
 
+        console.log("payments: ",payment);
+        
 
       // Update the property to connect the tenant
       await prisma.property.update({
