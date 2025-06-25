@@ -41,11 +41,11 @@ import { fetchAuthSession } from "aws-amplify/auth";
 const PaymentMethod = ({
   payments,
   leaseId,
-  tenant
+  tenant,
 }: {
   payments: Payment[];
   leaseId: number;
-  tenant:User
+  tenant: User;
 }) => {
   const today = new Date();
 
@@ -61,8 +61,6 @@ const PaymentMethod = ({
 
   const handlePayment = async () => {
 
-    console.log("clicked");
-    
     const isLoaded = await loadRazorpayScript();
     if (!isLoaded) {
       alert("Failed to load Razorpay SDK. Please try again later.");
@@ -71,21 +69,23 @@ const PaymentMethod = ({
 
     const session = await fetchAuthSession();
     const { idToken } = session.tokens ?? {};
-    const token = idToken
+    const token = idToken;
 
-
-    const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/leases/${leaseId}/payments`, {
-      method: "POST",
-      body: JSON.stringify({
-        amount: nextPayment.amountDue * 100,
-        currency: "INR",
-        receipt: `receipt_${nextPayment.id}`,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` })
-      },
-    }).then((t) => t.json());
+    const data = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/${nextPayment.id}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          amount: nextPayment.amountDue * 100,
+          currency: "INR",
+          receipt: `receipt_${nextPayment.id}`,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    ).then((t) => t.json());
 
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // from .env
@@ -93,28 +93,28 @@ const PaymentMethod = ({
       currency: data.currency,
       name: "RentiFul",
       description: "Rent Payment ",
-      image: "/logo.svg", // optional
+      image: "/logo.png", // optional
       order_id: data.orderId,
       handler: async function (response: any) {
 
-        console.log("response: ",response);
-        
-
         // Confirm payment with backend
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/leases/${leaseId}/payments/verify`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` })
-          },
-          body: JSON.stringify({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            paymentId: nextPayment.id,
-            leaseId:leaseId
-          }),
-        });
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/${nextPayment?.id}/verify`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              paymentId: nextPayment.id,
+              leaseId: leaseId,
+            }),
+          }
+        );
         alert("Payment Successful!");
         window.location.reload(); // or update state
       },
@@ -157,14 +157,23 @@ const PaymentMethod = ({
               <div className="text-sm text-gray-500 flex items-center mt-2">
                 <CalendarDays className="w-4 h-4 mr-1" />
                 Due Date:{" "}
-                {new Date(nextPayment.dueDate).toLocaleDateString("en-IN")}
+                {new Date(nextPayment.dueDate).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
               </div>
               {nextPayment.paymentDate && (
                 <div className="text-sm text-gray-500 flex items-center mt-1">
                   <Clock className="w-4 h-4 mr-1" />
                   Paid On:{" "}
                   {new Date(nextPayment.paymentDate).toLocaleDateString(
-                    "en-IN"
+                    "en-IN",
+                    {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }
                   )}
                 </div>
               )}
@@ -226,7 +235,7 @@ const ResidenceCard = ({
             </div>
           </div>
           <div className="text-xl font-bold">
-            Rs{currentLease.rent}{" "}
+            Rs {currentLease.rent}{" "}
             <span className="text-gray-500 text-sm font-normal">/ night</span>
           </div>
         </div>
@@ -238,21 +247,27 @@ const ResidenceCard = ({
           <div className="xl:flex">
             <div className="text-gray-500 mr-2">Start Date: </div>
             <div className="font-semibold">
-              {new Date(currentLease.startDate).toLocaleDateString()}
+              {nextPayment
+                ? new Date(currentLease.startDate).toLocaleDateString()
+                : "-"}
             </div>
           </div>
           <div className="border-[0.5px] border-primary-300 h-4" />
           <div className="xl:flex">
             <div className="text-gray-500 mr-2">End Date: </div>
             <div className="font-semibold">
-              {new Date(currentLease.endDate).toLocaleDateString()}
+              {nextPayment
+                ? new Date(currentLease.endDate).toLocaleDateString()
+                : "-"}
             </div>
           </div>
           <div className="border-[0.5px] border-primary-300 h-4" />
           <div className="xl:flex">
             <div className="text-gray-500 mr-2">Next Payment: </div>
             <div className="font-semibold">
-              {new Date(nextPayment.dueDate).toLocaleDateString()}
+              {nextPayment
+                ? new Date(nextPayment?.dueDate).toLocaleDateString()
+                : "-"}
             </div>
           </div>
         </div>
@@ -417,11 +432,11 @@ const Residence = () => {
             <PaymentMethod
               payments={payments || []}
               leaseId={currentLease.id}
-              tenant = {authUser}
+              tenant={authUser}
             />
           )}
         </div>
-        <BillingHistory payments={payments || []}  />
+        <BillingHistory payments={payments || []} />
       </div>
     </div>
   );

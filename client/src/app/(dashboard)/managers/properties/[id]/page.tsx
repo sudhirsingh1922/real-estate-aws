@@ -45,10 +45,11 @@ const PropertyTenants = () => {
         new Date(payment.dueDate).getMonth() === currentDate.getMonth() &&
         new Date(payment.dueDate).getFullYear() === currentDate.getFullYear()
     );
+    
     return [currentMonthPayment?.paymentStatus || "Not Paid",currentMonthPayment?.dueDate] ;
   };
 
-
+  
 
   return (
     <div className="dashboard-container">

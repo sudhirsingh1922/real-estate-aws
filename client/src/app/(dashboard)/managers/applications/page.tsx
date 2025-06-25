@@ -46,6 +46,8 @@ const Applications = () => {
     return application.status.toLowerCase() === activeTab;
   });
 
+  
+
   return (
     <div className="dashboard-container">
       <Header
