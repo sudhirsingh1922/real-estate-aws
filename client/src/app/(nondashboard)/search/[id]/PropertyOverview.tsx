@@ -75,18 +75,12 @@ const PropertyOverview = ({ propertyId }: PropertyOverviewProps) => {
       <div className="my-16">
         <h2 className="text-xl font-semibold mb-5">About {property.name}</h2>
         <p className="text-gray-500 leading-7">
-          {property.description} {" "}
-          <br />
-          At our estate, we are committed to providing a high-quality rent lease experience tailored to meet the needs of every tenant 🏡. Our properties are carefully maintained, offering clean, modern, and secure living environments that ensure both comfort and peace of mind 🌿🔒. We believe in creating a space where residents feel truly at home, whether they're staying short-term or long-term.
-
-From the very first point of contact, our team strives to deliver a seamless and transparent leasing process 📄✨. We’re here to guide you every step of the way — from property viewings and documentation to move-in day and beyond. Our professional support team is available to address any inquiries or maintenance requests promptly, ensuring minimal hassle and maximum satisfaction 🛠️📞.
-
-We understand that excellent service goes beyond just providing a space — it&apos;s about building trust and maintaining strong relationships with our residents 🤝. That’s why we continuously invest in the upkeep of our properties and in delivering responsive, courteous assistance at all times. Choosing to lease with us means choosing reliability, comfort, and a place you’ll be proud to call home 🏠😊.
-
-
-
-
-
+         {property.description} <br />
+  {"At our estate, we are committed to providing a high-quality rent lease experience tailored to meet the needs of every tenant 🏡. Our properties are carefully maintained, offering clean, modern, and secure living environments that ensure both comfort and peace of mind 🌿🔒. We believe in creating a space where residents feel truly at home, whether they're staying short-term or long-term."}
+  <br /><br />
+  {"From the very first point of contact, our team strives to deliver a seamless and transparent leasing process 📄✨. We’re here to guide you every step of the way — from property viewings and documentation to move-in day and beyond. Our professional support team is available to address any inquiries or maintenance requests promptly, ensuring minimal hassle and maximum satisfaction 🛠️📞."}
+  <br /><br />
+  {"We understand that excellent service goes beyond just providing a space — it's about building trust and maintaining strong relationships with our residents 🤝. That’s why we continuously invest in the upkeep of our properties and in delivering responsive, courteous assistance at all times. Choosing to lease with us means choosing reliability, comfort, and a place you’ll be proud to call home 🏠😊."}
         </p>
       </div>
     </div>
